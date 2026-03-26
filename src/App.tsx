@@ -1,71 +1,50 @@
 import { useState, useEffect } from 'react';
-import { initSDK, getAccelerationMode } from './runanywhere';
-import { ChatTab } from './components/ChatTab';
+import { initSDK } from './runanywhere';
 import { VisionTab } from './components/VisionTab';
 import { VoiceTab } from './components/VoiceTab';
-import { ToolsTab } from './components/ToolsTab';
 
-type Tab = 'chat' | 'vision' | 'voice' | 'tools';
+type Tab = 'vision' | 'voice';
 
 export function App() {
   const [sdkReady, setSdkReady] = useState(false);
-  const [sdkError, setSdkError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('chat');
+  const [activeTab, setActiveTab] = useState<Tab>('vision');
 
   useEffect(() => {
+    // RunAnywhere SDK Initialization [cite: 25, 26]
     initSDK()
       .then(() => setSdkReady(true))
-      .catch((err) => setSdkError(err instanceof Error ? err.message : String(err)));
+      .catch((err) => console.error("SDK Load Fail:", err));
   }, []);
 
-  if (sdkError) {
-    return (
-      <div className="app-loading">
-        <h2>SDK Error</h2>
-        <p className="error-text">{sdkError}</p>
-      </div>
-    );
-  }
-
   if (!sdkReady) {
-    return (
-      <div className="app-loading">
-        <div className="spinner" />
-        <h2>Loading RunAnywhere SDK...</h2>
-        <p>Initializing on-device AI engine</p>
-      </div>
-    );
+    return <div className="loading">Blind-Partner AI is waking up...</div>;
   }
-
-  const accel = getAccelerationMode();
 
   return (
-    <div className="app">
+    <div className="app-container">
       <header className="app-header">
-        <h1>RunAnywhere AI</h1>
-        {accel && <span className="badge">{accel === 'webgpu' ? 'WebGPU' : 'CPU'}</span>}
+        <div className="header-content">
+          <h1>Blind-Partner <span style={{ color: '#ff5500' }}>OFFLINE</span></h1>
+        </div>
+        <nav className="tab-nav">
+          <button 
+            onClick={() => setActiveTab('vision')}
+            className={`tab-btn ${activeTab === 'vision' ? 'active' : ''}`}
+          >
+            📷 Vision
+          </button>
+          <button 
+            onClick={() => setActiveTab('voice')}
+            className={`tab-btn ${activeTab === 'voice' ? 'active' : ''}`}
+          >
+            🎤 Voice
+          </button>
+        </nav>
       </header>
 
-      <nav className="tab-bar">
-        <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>
-          💬 Chat
-        </button>
-        <button className={activeTab === 'vision' ? 'active' : ''} onClick={() => setActiveTab('vision')}>
-          📷 Vision
-        </button>
-        <button className={activeTab === 'voice' ? 'active' : ''} onClick={() => setActiveTab('voice')}>
-          🎙️ Voice
-        </button>
-        <button className={activeTab === 'tools' ? 'active' : ''} onClick={() => setActiveTab('tools')}>
-          🔧 Tools
-        </button>
-      </nav>
-
-      <main className="tab-content">
-        {activeTab === 'chat' && <ChatTab />}
+      <main className="main-content">
         {activeTab === 'vision' && <VisionTab />}
         {activeTab === 'voice' && <VoiceTab />}
-        {activeTab === 'tools' && <ToolsTab />}
       </main>
     </div>
   );
